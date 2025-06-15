@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Terminal Vercel</title>
+  <style>
+    body { background: #000; color: #0f0; font-family: monospace; padding: 20px; }
+    #terminal { white-space: pre-line; }
+    input { background: black; border: none; color: lime; width: 100%; }
+  </style>
+</head>
+<body>
+  <div id="terminal">Terminal Vercel. Taip `help` untuk senarai arahan.</div>
+  <br>
+  <input type="text" id="input" autofocus />
+
+  <script>
+    const terminal = document.getElementById('terminal');
+    const input = document.getElementById('input');
+
+    input.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        const cmd = input.value;
+        terminal.innerText += `\n> ${cmd}`;
+
+        const res = await fetch(`/api/terminal?command=${encodeURIComponent(cmd)}`);
+        const data = await res.json();
+        terminal.innerText += `\n${data.output}`;
+
+        input.value = '';
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+    });
+  </script>
+</body>
+</html>
