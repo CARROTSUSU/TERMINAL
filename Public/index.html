@@ -1,39 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>GPROOF Miner Log</title>
   <style>
-    body { background: #000; color: #0f0; font-family: monospace; padding: 20px; }
-    h1 { color: #0ff; }
-    .log-entry { border-bottom: 1px solid #0f0; padding: 10px 0; }
+    body {
+      background-color: #000;
+      color: #0f0;
+      font-family: "Courier New", monospace;
+      padding: 20px;
+    }
+    h1 {
+      color: #0ff;
+      margin-bottom: 10px;
+    }
+    .log-entry {
+      border-bottom: 1px dashed #0f0;
+      padding: 10px 0;
+    }
+    .hash {
+      font-weight: bold;
+      color: #7fff00;
+    }
+    .timestamp {
+      color: #aaa;
+      font-size: 0.85em;
+    }
+    .reward {
+      color: #ff0;
+    }
+    .wallet {
+      color: #0ff;
+    }
   </style>
 </head>
 <body>
-  <h1>📜 GPROOF Miner Log</h1>
-  <div id="log"></div>
+  <h1>⛏️ GPROOF Live Miner Log</h1>
+  <div id="log">Memuatkan log...</div>
 
   <script>
-    async function loadLogs() {
-      const res = await fetch('/api/logs');
-      const data = await res.json();
-      const container = document.getElementById('log');
-      container.innerHTML = '';
+    async function fetchLogs() {
+      try {
+        const res = await fetch('/api/logs');
+        const data = await res.json();
 
-      data.logs.slice().reverse().forEach(entry => {
-        const div = document.createElement('div');
-        div.className = 'log-entry';
-        div.innerHTML = `
-          ⛏️ <b>${entry.hash.slice(0, 16)}...</b><br>
-          🎁 ${entry.reward}<br>
-          🧾 Wallet: ${entry.wallet}<br>
-          🕒 ${new Date(entry.timestamp).toLocaleString()}
-        `;
-        container.appendChild(div);
-      });
+        const container = document.getElementById('log');
+        container.innerHTML = '';
+
+        data.logs.slice().reverse().forEach(entry => {
+          const div = document.createElement('div');
+          div.className = 'log-entry';
+          div.innerHTML = `
+            <div class="hash">🔗 ${entry.hash}</div>
+            <div class="reward">🎁 Ganjaran: ${entry.reward}</div>
+            <div class="wallet">👛 Wallet: ${entry.wallet}</div>
+            <div>🧾 Task ID: ${entry.taskId}</div>
+            <div class="timestamp">🕒 ${new Date(entry.timestamp).toLocaleString()}</div>
+          `;
+          container.appendChild(div);
+        });
+
+      } catch (err) {
+        document.getElementById('log').innerText = '❌ Gagal memuatkan log.';
+      }
     }
 
-    loadLogs();
-    setInterval(loadLogs, 5000); // Refresh setiap 5 saat
+    fetchLogs();
+    setInterval(fetchLogs, 5000); // Refresh setiap 5 saat
   </script>
 </body>
 </html>
