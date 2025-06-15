@@ -1,14 +1,11 @@
-import fs from 'fs';
-import path from 'path';
+// /api/logs.js
+let logList = [];
 
-const logPath = path.resolve('./logs.json');
+export function logHash(data) {
+  if (logList.length >= 50) logList.shift(); // Max 50 log
+  logList.push(data);
+}
 
 export default function handler(req, res) {
-  try {
-    const data = fs.readFileSync(logPath, 'utf8');
-    const logs = JSON.parse(data);
-    res.status(200).json({ logs });
-  } catch {
-    res.status(200).json({ logs: [] });
-  }
+  res.status(200).json(logList);
 }
