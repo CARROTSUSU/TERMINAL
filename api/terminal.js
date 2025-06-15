@@ -1,6 +1,20 @@
-// Global log simpanan sementara (akan hilang jika restart server Vercel)
-let logs = global.logs || [];
-global.logs = logs;
+import fs from 'fs';
+import path from 'path';
+
+const logPath = path.resolve('./logs.json');
+
+function loadLogs() {
+  try {
+    const data = fs.readFileSync(logPath, 'utf8');
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
+}
+
+function saveLogs(logs) {
+  fs.writeFileSync(logPath, JSON.stringify(logs, null, 2));
+}
 
 export default async function handler(req, res) {
   let command, hash, wallet, taskId;
@@ -9,12 +23,11 @@ export default async function handler(req, res) {
     try {
       const body = req.body;
       const parsed = typeof body === 'string' ? JSON.parse(body) : body;
-
       command = 'submit';
       hash = parsed.hash;
       wallet = parsed.wallet;
       taskId = parsed.taskId;
-    } catch (err) {
+    } catch {
       return res.status(400).json({ output: '❌ Bad POST body' });
     }
   } else {
@@ -25,32 +38,25 @@ export default async function handler(req, res) {
   }
 
   if (command !== 'submit' || !hash) {
-    return res.status(400).json({ output: '❌ Sila hantar hash. Contoh: ?command=submit&hash=...' });
+    return res.status(400).json({ output: '❌ Sila hantar hash.' });
   }
 
   const isValid = hash.startsWith('0000');
-
   if (isValid) {
     const reward = `${Math.floor(Math.random() * 100) + 1} GPRF`;
-    const logEntry = {
+    const entry = {
       wallet,
       taskId,
       hash,
       reward,
       timestamp: new Date().toISOString()
     };
+    const logs = loadLogs();
+    logs.push(entry);
+    saveLogs(logs);
 
-    logs.push(logEntry); // Simpan dalam log
-
-    console.log(`✅ Diterima: ${hash} | Wallet: ${wallet} | Task: ${taskId}`);
-    return res.status(200).json({
-      output: '✅ Hash diterima! 🎉',
-      ...logEntry
-    });
+    return res.status(200).json({ output: '✅ Hash diterima! 🎉', ...entry });
   } else {
-    return res.status(200).json({
-      output: '❌ Hash tidak valid (tidak mula dengan 0000)',
-      hash
-    });
+    return res.status(200).json({ output: '❌ Hash tidak valid', hash });
   }
 }
