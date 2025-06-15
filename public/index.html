@@ -25,32 +25,31 @@
   <div id="log">⏳ Memuat log...</div>
 
   <script>
-    async function fetchLog() {
-      try {
-        const res = await fetch('/api/logs'); // pastikan endpoint ini ada
-        const data = await res.json();
+  async function fetchLog() {
+    try {
+      const res = await fetch('/api/logs');
+      const data = await res.json();
 
-        if (!Array.isArray(data)) {
-          document.getElementById('log').innerText = '❌ Log format salah atau kosong.';
-          return;
-        }
-
-        let logContent = '';
-        data.forEach(item => {
-          const status = item.output.includes('✅') ? 'success' : 'error';
-          logContent += `[${item.taskId || 'task-???'}] ` +
-                        `<span class="${status}">${item.output}</span> ` +
-                        `<span class="hash">${item.hash}</span>\n`;
-        });
-
-        document.getElementById('log').innerHTML = logContent;
-      } catch (e) {
-        document.getElementById('log').innerText = '❌ Gagal fetch log dari API.';
+      if (!Array.isArray(data)) {
+        document.getElementById('log').innerText = '❌ Log kosong atau salah format.';
+        return;
       }
-    }
 
-    fetchLog();
-    setInterval(fetchLog, 5000); // auto refresh setiap 5 saat
-  </script>
+      let logContent = '';
+      data.reverse().forEach(entry => {
+        logContent += `[${entry.timestamp}] ` +
+                      `<span class="success">✅ ${entry.hash}</span> ` +
+                      `<span class="hash">| ${entry.reward}</span>\n`;
+      });
+
+      document.getElementById('log').innerHTML = logContent;
+    } catch (e) {
+      document.getElementById('log').innerText = '❌ Tidak dapat fetch log.';
+    }
+  }
+
+  fetchLog();
+  setInterval(fetchLog, 5000); // Auto refresh
+</script>
 </body>
 </html>
