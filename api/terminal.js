@@ -1,11 +1,13 @@
+// Global log simpanan sementara (akan hilang jika restart server Vercel)
+let logs = global.logs || [];
+global.logs = logs;
+
 export default async function handler(req, res) {
   let command, hash, wallet, taskId;
 
   if (req.method === 'POST') {
     try {
       const body = req.body;
-
-      // Jika body masih string (kadang dari PHP), parse manual
       const parsed = typeof body === 'string' ? JSON.parse(body) : body;
 
       command = 'submit';
@@ -16,7 +18,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ output: '❌ Bad POST body' });
     }
   } else {
-    // Untuk ujian GET jika perlu
     command = req.query.command;
     hash = req.query.hash;
     wallet = req.query.wallet || 'unknown';
@@ -30,13 +31,21 @@ export default async function handler(req, res) {
   const isValid = hash.startsWith('0000');
 
   if (isValid) {
-    console.log(`✅ Diterima: ${hash} | Wallet: ${wallet} | Task: ${taskId}`);
-    return res.status(200).json({
-      output: '✅ Hash diterima! 🎉',
+    const reward = `${Math.floor(Math.random() * 100) + 1} GPRF`;
+    const logEntry = {
       wallet,
       taskId,
       hash,
-      reward: '88 GPRF'
+      reward,
+      timestamp: new Date().toISOString()
+    };
+
+    logs.push(logEntry); // Simpan dalam log
+
+    console.log(`✅ Diterima: ${hash} | Wallet: ${wallet} | Task: ${taskId}`);
+    return res.status(200).json({
+      output: '✅ Hash diterima! 🎉',
+      ...logEntry
     });
   } else {
     return res.status(200).json({
