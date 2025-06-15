@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GPROOF Terminal Log</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #00FF00;
+      font-family: monospace;
+      padding: 1rem;
+      overflow-y: scroll;
+    }
+    #log {
+      white-space: pre-wrap;
+    }
+    .success { color: #00FF00; }
+    .error { color: #FF4444; }
+    .hash { color: #00ccff; }
+  </style>
+</head>
+<body>
+  <h2>🚀 GPROOF Terminal Log Viewer</h2>
+  <div id="log">⏳ Memuat log...</div>
+
+  <script>
+    async function fetchLog() {
+      try {
+        const res = await fetch('/api/logs'); // pastikan endpoint ini ada
+        const data = await res.json();
+
+        if (!Array.isArray(data)) {
+          document.getElementById('log').innerText = '❌ Log format salah atau kosong.';
+          return;
+        }
+
+        let logContent = '';
+        data.forEach(item => {
+          const status = item.output.includes('✅') ? 'success' : 'error';
+          logContent += `[${item.taskId || 'task-???'}] ` +
+                        `<span class="${status}">${item.output}</span> ` +
+                        `<span class="hash">${item.hash}</span>\n`;
+        });
+
+        document.getElementById('log').innerHTML = logContent;
+      } catch (e) {
+        document.getElementById('log').innerText = '❌ Gagal fetch log dari API.';
+      }
+    }
+
+    fetchLog();
+    setInterval(fetchLog, 5000); // auto refresh setiap 5 saat
+  </script>
+</body>
+</html>
