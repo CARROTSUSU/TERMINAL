@@ -39,7 +39,7 @@
       data.reverse().forEach(entry => {
         logContent += `[${entry.timestamp}] ` +
                       `<span class="success">✅ ${entry.hash}</span> ` +
-                      `<span class="hash">| ${entry.reward}</span>\n`;
+                      `<span class="hash">| ${entry.reward}</span><br>`;
       });
 
       document.getElementById('log').innerHTML = logContent;
