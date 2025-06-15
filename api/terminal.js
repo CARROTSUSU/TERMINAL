@@ -1,40 +1,47 @@
-// /api/terminal.js
 export default async function handler(req, res) {
-  const { command, hash } = req.query;
+  let command, hash, wallet, taskId;
 
-  let output = '';
-
-  switch ((command || '').toLowerCase()) {
-    case 'submit':
-      if (!hash) {
-        output = '❌ Sila hantar hash. Contoh: ?command=submit&hash=0000abcd...';
-        break;
-      }
-
-      const isValid = hash.startsWith('0000'); // Anda boleh ubah difficulty
-
-      if (isValid) {
-        // ✅ Hash sah – kita fetch balik ke endpoint kita sendiri (boleh log ke tempat lain jika mahu)
-        const logResponse = await fetch('https://terminal-swart.vercel.app/api/logger', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ hash, timestamp: Date.now() })
-        });
-
-        const logText = await logResponse.text();
-        output = `✅ Hash diterima: ${hash} | Logger respon: ${logText}`;
-      } else {
-        output = `❌ Hash ditolak: Tidak cukup difficulty (perlukan awalan 0000)`;
-      }
-      break;
-
-    case 'info':
-      output = 'Submit hash melalui endpoint ini dengan ?command=submit&hash=...';
-      break;
-
-    default:
-      output = `❌ Arahan tidak dikenali: ${command}`;
+  if (req.method === 'POST') {
+    try {
+      const body = await req.json();
+      command = 'submit';
+      hash = body.hash;
+      wallet = body.wallet;
+      taskId = body.taskId;
+    } catch (err) {
+      return res.status(400).json({ output: '❌ Bad POST body' });
+    }
+  } else {
+    command = req.query.command;
+    hash = req.query.hash;
+    wallet = req.query.wallet || "unknown";
+    taskId = req.query.taskId || "none";
   }
 
-  res.status(200).json({ output });
+  if (command !== 'submit' || !hash) {
+    return res.status(400).json({ output: '❌ Sila hantar hash. Contoh: ?command=submit&hash=...' });
+  }
+
+  const isValid = hash.startsWith('0000'); // Basic difficulty
+
+  if (isValid) {
+    console.log(`✅ Hash diterima: ${hash} | Wallet: ${wallet} | TaskID: ${taskId}`);
+
+    // Optional: Log ke fail sementara (dev local)
+    // import fs from 'fs';
+    // fs.appendFileSync('/tmp/miner-log.txt', `${Date.now()} - ${wallet} - ${hash}\n`);
+
+    return res.status(200).json({
+      output: `✅ Hash diterima! 🎉`,
+      wallet,
+      taskId,
+      hash,
+      reward: '88 GPRF'
+    });
+  } else {
+    return res.status(200).json({
+      output: `❌ Hash tidak valid (tidak mula dengan 0000)`,
+      hash
+    });
+  }
 }
