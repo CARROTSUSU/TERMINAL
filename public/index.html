@@ -10,13 +10,11 @@
       color: #00FF00;
       font-family: monospace;
       padding: 1rem;
-      overflow-y: scroll;
     }
     #log {
       white-space: pre-wrap;
     }
     .success { color: #00FF00; }
-    .error { color: #FF4444; }
     .hash { color: #00ccff; }
   </style>
 </head>
@@ -25,31 +23,31 @@
   <div id="log">⏳ Memuat log...</div>
 
   <script>
-  async function fetchLog() {
-    try {
-      const res = await fetch('/api/logs');
-      const data = await res.json();
+    async function fetchLog() {
+      try {
+        const res = await fetch('/api/logs');
+        const data = await res.json();
 
-      if (!Array.isArray(data)) {
-        document.getElementById('log').innerText = '❌ Log kosong atau salah format.';
-        return;
+        if (!Array.isArray(data)) {
+          document.getElementById('log').innerText = '❌ Log kosong atau salah format.';
+          return;
+        }
+
+        let logContent = '';
+        data.reverse().forEach(entry => {
+          logContent += `[${entry.timestamp}] ` +
+                        `<span class="success">✅ ${entry.hash}</span> ` +
+                        `<span class="hash">| ${entry.reward}</span>\n`;
+        });
+
+        document.getElementById('log').innerHTML = logContent;
+      } catch (e) {
+        document.getElementById('log').innerText = '❌ Tidak dapat fetch log.';
       }
-
-      let logContent = '';
-      data.reverse().forEach(entry => {
-        logContent += `[${entry.timestamp}] ` +
-                      `<span class="success">✅ ${entry.hash}</span> ` +
-                      `<span class="hash">| ${entry.reward}</span><br>`;
-      });
-
-      document.getElementById('log').innerHTML = logContent;
-    } catch (e) {
-      document.getElementById('log').innerText = '❌ Tidak dapat fetch log.';
     }
-  }
 
-  fetchLog();
-  setInterval(fetchLog, 5000); // Auto refresh
-</script>
+    fetchLog();
+    setInterval(fetchLog, 5000); // Auto refresh setiap 5s
+  </script>
 </body>
 </html>
